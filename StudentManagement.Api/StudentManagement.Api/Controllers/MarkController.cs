@@ -59,8 +59,6 @@ public class MarkController : ControllerBase
     public async Task<IActionResult> GetMarksByStudentId(int studentId)
     {
         var marks = await _markRepository.GetAll();
-        var student = await _studentRepository.GetById(studentId);
-        var studentName = student.StudentName;
 
         marks = marks.Where(m => m.StudentId == studentId).ToList();
 
@@ -69,19 +67,42 @@ public class MarkController : ControllerBase
             return NotFound("No marks found for the student.");
         }
 
-        var markModels = marks.Select(m => new AverageMarkDetailsDto
+        var markModels = marks.Select(m => new
         {
-            StudentId= m.StudentId,
-            StudentName= studentName,
-            CourseId= m.CourseId,
-            MarkValue= m.MarkValue,
-            AverageMark= marks.Select(x => x.MarkValue).CalculateAverage(),
+            StudentId = m.StudentId,
+            CourseId = m.CourseId,
+            MarkValue = m.MarkValue,
             CreatedOn = DateTime.UtcNow,
-            LastModifiedOn= DateTime.UtcNow
-
+            LastModifiedOn = DateTime.UtcNow
         }).ToList();
 
         return Ok(markModels);
+    }
+
+    [HttpGet("student/{studentId}/details")]
+    public async Task<IActionResult> GetStudentDetails(int studentId)
+    {
+        var student = await _studentRepository.GetById(studentId);
+        var studentName = student.StudentName;
+
+        var marks = await _markRepository.GetAll();
+        marks = marks.Where(m => m.StudentId == studentId).ToList();
+
+        if (!marks.Any())
+        {
+            return NotFound("No marks found for the student.");
+        }
+
+        var averageMark = marks.Select(x => x.MarkValue).CalculateAverage();
+
+        var studentDetails = new
+        {
+            StudentId = studentId,
+            StudentName = studentName,
+            AverageMark = averageMark
+        };
+
+        return Ok(studentDetails);
     }
 
 }
