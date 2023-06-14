@@ -79,7 +79,7 @@ public class StudentController : ControllerBase
     /// student id of updated record 
     /// </returns>
     [HttpPut]
-    public async Task<IActionResult> UpadteCustomer(Student student)
+    public async Task<IActionResult> UpdateStudent(Student student)
     {
         var updatedStudent = await StudentRepository.Update(student);
         return Ok(updatedStudent.Id);
