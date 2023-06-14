@@ -3,6 +3,9 @@ using StudentManagement.Api.Extensions;
 using StudentManagement.Api.Model;
 using StudentManagement.Repository;
 
+/// <summary>
+/// Controller for managing marks of students.
+/// </summary>
 [ApiController]
 [Route("[controller]")]
 public class MarkController : ControllerBase
@@ -18,28 +21,30 @@ public class MarkController : ControllerBase
         _courseRepository = courseRepository;
     }
 
+    /// <summary>
+    /// Adds a mark for a student in a course.
+    /// </summary>
+    /// <param name="studentId">The ID of the student.</param>
+    /// <param name="courseId">The ID of the course.</param>
+    /// <param name="markValue">The value of the mark.</param>
+    /// <returns>The ID of the created mark.</returns>
     [HttpPost("student/{studentId}/course/{courseId}")]
     public async Task<IActionResult> AddMarkForStudent(int studentId, int courseId, [FromBody] int markValue)
     {
-        // Get the student with the specified studentId
         var student = await _studentRepository.GetById(studentId);
 
         if (student == null)
         {
-            // If no student found, return not found status
             return NotFound("Student not found");
         }
 
-        // Get the course with the specified courseId
         var course = await _courseRepository.GetById(courseId);
 
         if (course == null)
         {
-            // If no course found, return not found status
             return NotFound("Course not found");
         }
 
-        // Create the mark with the given mark value
         var mark = new Mark
         {
             StudentId = studentId,
@@ -49,12 +54,15 @@ public class MarkController : ControllerBase
             LastModifiedOn= DateTime.UtcNow
         };
 
-        // Create the mark
         var createdMark = await _markRepository.Create(mark);
         return Ok(createdMark.Id);
     }
 
-
+    /// <summary>
+    /// Retrieves marks for a student.
+    /// </summary>
+    /// <param name="studentId">The ID of the student.</param>
+    /// <returns>The marks of the student.</returns>
     [HttpGet("student/{studentId}/marks")]
     public async Task<IActionResult> GetMarksByStudentId(int studentId)
     {
@@ -79,6 +87,11 @@ public class MarkController : ControllerBase
         return Ok(markModels);
     }
 
+    /// <summary>
+    /// Retrieves details of a student including their average mark, total marks, and grade.
+    /// </summary>
+    /// <param name="studentId">The ID of the student.</param>
+    /// <returns>The details of the student.</returns>
     [HttpGet("student/{studentId}/details")]
     public async Task<IActionResult> GetStudentDetails(int studentId)
     {
@@ -94,12 +107,14 @@ public class MarkController : ControllerBase
         }
 
         var averageMark = marks.Select(x => x.MarkValue).CalculateAverage();
+        var totalMarks = marks.Select(x => x.MarkValue).CalculateSum();
 
         var studentDetails = new
         {
             StudentId = studentId,
             StudentName = studentName,
             AverageMark = averageMark,
+            TotalMarks = totalMarks,
             Grade = averageMark.GetGrade()
         };
 
