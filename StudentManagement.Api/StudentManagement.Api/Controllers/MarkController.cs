@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using StudentManagement.Api.Extensions;
 using StudentManagement.Api.Model;
 using StudentManagement.Repository;
 
@@ -43,12 +44,44 @@ public class MarkController : ControllerBase
         {
             StudentId = studentId,
             CourseId = courseId,
-            MarkValue = markValue
+            MarkValue = markValue,
+            CreatedOn = DateTime.UtcNow,
+            LastModifiedOn= DateTime.UtcNow
         };
 
         // Create the mark
         var createdMark = await _markRepository.Create(mark);
         return Ok(createdMark.Id);
+    }
+
+
+    [HttpGet("student/{studentId}/marks")]
+    public async Task<IActionResult> GetMarksByStudentId(int studentId)
+    {
+        var marks = await _markRepository.GetAll();
+        var student = await _studentRepository.GetById(studentId);
+        var studentName = student.StudentName;
+
+        marks = marks.Where(m => m.StudentId == studentId).ToList();
+
+        if (!marks.Any())
+        {
+            return NotFound("No marks found for the student.");
+        }
+
+        var markModels = marks.Select(m => new AverageMarkDetailsDto
+        {
+            StudentId= m.StudentId,
+            StudentName= studentName,
+            CourseId= m.CourseId,
+            MarkValue= m.MarkValue,
+            AverageMark= marks.Select(x => x.MarkValue).CalculateAverage(),
+            CreatedOn = DateTime.UtcNow,
+            LastModifiedOn= DateTime.UtcNow
+
+        }).ToList();
+
+        return Ok(markModels);
     }
 
 }
