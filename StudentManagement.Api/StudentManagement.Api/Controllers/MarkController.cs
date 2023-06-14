@@ -96,7 +96,6 @@ public class MarkController : ControllerBase
     public async Task<IActionResult> GetStudentDetails(int studentId)
     {
         var student = await _studentRepository.GetById(studentId);
-        var studentName = student.StudentName;
 
         var marks = await _markRepository.GetAll();
         marks = marks.Where(m => m.StudentId == studentId).ToList();
@@ -106,16 +105,13 @@ public class MarkController : ControllerBase
             return NotFound("No marks found for the student.");
         }
 
-        var averageMark = marks.Select(x => x.MarkValue).CalculateAverage();
-        var totalMarks = marks.Select(x => x.MarkValue).CalculateSum();
-
         var studentDetails = new
         {
             StudentId = studentId,
-            StudentName = studentName,
-            AverageMark = averageMark,
-            TotalMarks = totalMarks,
-            Grade = averageMark.GetGrade()
+            StudentName = student.StudentName,
+            AverageMark = marks.Select(x => x.MarkValue).CalculateAverage(),
+            TotalMarks = marks.Select(x => x.MarkValue).CalculateSum(),
+            Grade = marks.Select(x => x.MarkValue).CalculateAverage().GetGrade()
         };
 
         return Ok(studentDetails);
