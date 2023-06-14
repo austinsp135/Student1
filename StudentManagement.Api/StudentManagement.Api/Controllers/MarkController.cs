@@ -51,7 +51,7 @@ public class MarkController : ControllerBase
             CourseId = courseId,
             MarkValue = markValue,
             CreatedOn = DateTime.UtcNow,
-            LastModifiedOn= DateTime.UtcNow
+            LastModifiedOn = DateTime.UtcNow
         };
 
         var createdMark = await _markRepository.Create(mark);
@@ -121,5 +121,63 @@ public class MarkController : ControllerBase
         return Ok(studentDetails);
     }
 
+    /// <summary>
+    /// Deletes a mark for a student in a course.
+    /// </summary>
+    /// <param name="studentId">The ID of the student.</param>
+    /// <param name="courseId">The ID of the course.</param>
+    /// <returns>An IActionResult indicating the result of the operation.</returns>
+    [HttpDelete("student/{studentId}/course/{courseId}")]
+    public async Task<IActionResult> DeleteMarkForStudent(int studentId, int courseId)
+    {
+        var marks = await _markRepository.GetAll();
+        var mark = marks.FirstOrDefault(m => m.StudentId == studentId && m.CourseId == courseId);
+
+        if (mark == null)
+        {
+            return NotFound("Mark not found");
+        }
+        await _markRepository.Delete(mark.Id);
+        return Ok("Mark deleted successfully");
+    }
+
+    /// <summary>
+    /// Updates the mark value for a student in a course.
+    /// </summary>
+    /// <param name="studentId">The ID of the student.</param>
+    /// <param name="courseId">The ID of the course.</param>
+    /// <param name="markValue">The new value of the mark.</param>
+    /// <returns>An IActionResult indicating the result of the operation.</returns>
+    [HttpPut("student/{studentId}/course/{courseId}")]
+    public async Task<IActionResult> UpdateMarkForStudent(int studentId, int courseId, [FromBody] int markValue)
+    {
+        var student = await _studentRepository.GetById(studentId);
+
+        if (student == null)
+        {
+            return NotFound("Student not found");
+        }
+
+        var course = await _courseRepository.GetById(courseId);
+
+        if (course == null)
+        {
+            return NotFound("Course not found");
+        }
+
+        var marks = await _markRepository.GetAll();
+        var mark = marks.FirstOrDefault(m => m.StudentId == studentId && m.CourseId == courseId);
+
+        if (mark == null)
+        {
+            return NotFound("Mark not found");
+        }
+
+        mark.MarkValue = markValue;
+        mark.LastModifiedOn = DateTime.UtcNow;
+        await _markRepository.Update(mark);
+
+        return Ok("Mark updated successfully");
+    }
 }
 
