@@ -99,7 +99,8 @@ public class MarkController : ControllerBase
         {
             StudentId = studentId,
             StudentName = studentName,
-            AverageMark = averageMark
+            AverageMark = averageMark,
+            Grade = averageMark.GetGrade()
         };
 
         return Ok(studentDetails);
