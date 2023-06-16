@@ -175,5 +175,63 @@ public class MarkController : ControllerBase
 
         return Ok("Mark updated successfully");
     }
+
+    /// <summary>
+    /// Retrieves the highest mark for a course and the name of the student who scored it.
+    /// </summary>
+    /// <param name="courseId">The ID of the course.</param>
+    /// <returns>The highest mark and the name of the student.</returns>
+    [HttpGet("course/{courseId}/highestmark")]
+    public async Task<IActionResult> GetHighestMarkForCourse(int courseId)
+    {
+        var course = await _courseRepository.GetById(courseId);
+
+        if (course == null)
+        {
+            return NotFound("Course not found");
+        }
+
+        var (highestMarkValue, studentName) = await _markRepository.TryGetHighestMarkForCourse(courseId, _studentRepository);
+
+        var result = new
+        {
+            CourseId = courseId,
+            CourseName = course.CourseName,
+            HighestMark = highestMarkValue,
+            StudentName = studentName
+        };
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Retrieves the lowest mark for a course and the name of the student who scored it.
+    /// </summary>
+    /// <param name="courseId">The ID of the course.</param>
+    /// <returns>The lowest mark and the name of the student.</returns>
+    [HttpGet("course/{courseId}/lowestmark")]
+    public async Task<IActionResult> GetLowestMarkForCourse(int courseId)
+    {
+        var course = await _courseRepository.GetById(courseId);
+
+        if (course == null)
+        {
+            return NotFound("Course not found");
+        }
+
+        var (lowestMarkValue, studentName) = await _markRepository.TryGetLowestMarkForCourse(courseId, _studentRepository);
+
+        var result = new
+        {
+            CourseId = courseId,
+            CourseName = course.CourseName,
+            LowestMark = lowestMarkValue,
+            StudentName = studentName
+        };
+
+        return Ok(result);
+    }
+
+
 }
 

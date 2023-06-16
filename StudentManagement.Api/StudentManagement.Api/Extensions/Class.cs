@@ -1,4 +1,7 @@
-﻿namespace StudentManagement.Api.Extensions
+﻿using StudentManagement.Api.Model;
+using StudentManagement.Repository;
+
+namespace StudentManagement.Api.Extensions
 {
     /// <summary>
     /// Extension methods for calculating and getting grades based on marks.
@@ -49,5 +52,45 @@
         {
             return marks.Sum();
         }
+
+        /// <summary>
+        /// Tries to get the highest mark for a given course.
+        /// </summary>
+        public static async Task<(int MarkValue, string StudentName)> TryGetHighestMarkForCourse(this IRepository<Mark> markRepository, int courseId, IRepository<Student> studentRepository)
+        {
+            var marks = await markRepository.GetAll();
+            marks = marks.Where(m => m.CourseId == courseId).ToList();
+
+            if (!marks.Any())
+            {
+                return (0, string.Empty);
+            }
+
+            var highestMark = marks.OrderByDescending(m => m.MarkValue).First();
+            var student = await studentRepository.GetById(highestMark.StudentId);
+
+            return (highestMark.MarkValue, student.StudentName);
+        }
+
+        /// <summary>
+        /// Tries to get the lowest mark for a given course.
+        /// </summary>
+        public static async Task<(int MarkValue, string StudentName)> TryGetLowestMarkForCourse(this IRepository<Mark> markRepository, int courseId, IRepository<Student> studentRepository)
+        {
+            var marks = await markRepository.GetAll();
+            marks = marks.Where(m => m.CourseId == courseId).ToList();
+
+            if (!marks.Any())
+            {
+                return (0, string.Empty);
+            }
+
+            var lowestMark = marks.OrderBy(m => m.MarkValue).First();
+            var student = await studentRepository.GetById(lowestMark.StudentId);
+
+            return (lowestMark.MarkValue, student.StudentName);
+        }
+
+
     }
 }
